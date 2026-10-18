@@ -12,7 +12,6 @@ pub fn draw(buffer: &mut [u32], view: &AppView) {
     canvas::clear(buffer);
     frame::draw(buffer);
 
-    font::draw_text_centered(buffer, "RELOGIO RETRO", 30, 3, colors::GREEN_DIM);
     font::draw_text_centered(buffer, "HORARIO LOCAL", 84, 2, colors::GREEN_DIM);
 
     segment::draw_large_time(
@@ -32,10 +31,16 @@ pub fn draw(buffer: &mut [u32], view: &AppView) {
     font::draw_text_centered(buffer, &date, 334, 4, colors::GREEN_BRIGHT);
     font::draw_text_centered(buffer, status_label(view.clock.countdown.status), 382, 2, colors::GREEN_DIM);
     segment::draw_countdown(buffer, view.clock.countdown.remaining_seconds, 410);
-    font::draw_text_centered(buffer, "BOTAO DIREITO  >  MENU  >  FECHAR", 514, 2, colors::GREEN_DIM);
+    font::draw_text_centered(buffer, "Acessar menu com botão direito", 514, 2, colors::GREEN_DIM);
 
     if view.ui.menu.visible {
-        context_menu::draw(buffer, view.ui.menu, view.ui.close_hover);
+        context_menu::draw(
+            buffer,
+            view.ui.menu,
+            view.ui.fullscreen_hover,
+            view.ui.restore_hover,
+            view.ui.close_hover,
+        );
     }
 }
 

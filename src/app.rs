@@ -25,16 +25,19 @@ impl App<LocalTimeProvider> {
 }
 
 impl<T: TimeProvider> App<T> {
-    pub fn tick(&mut self, input: MouseInput) -> AppView {
+    pub fn tick(&mut self, input: MouseInput) -> (AppView, UiEvent) {
         let (event, ui) = self.ui.update(input);
         if event == UiEvent::ExitRequested {
             self.running = false;
         }
 
-        AppView {
-            clock: self.time_provider.snapshot(),
-            ui,
-        }
+        (
+            AppView {
+                clock: self.time_provider.snapshot(),
+                ui,
+            },
+            event,
+        )
     }
 
     pub fn is_running(&self) -> bool {

@@ -8,7 +8,10 @@ Um relógio digital retro em Rust: fundo preto, letras verdes, hora local em for
 - Antes das 08:00, a contagem mostra o ciclo completo de 9 horas e informa que está aguardando o início.
 - Entre 08:00 e 17:00, a contagem regressiva vai até 17:00.
 - A partir das 17:00, a contagem fica em `00:00:00` até o próximo ciclo das 08:00.
-- A janela é redimensionável e pode ser maximizada para ocupar a tela. O conteúdo é esticado para preencher a área disponível.
+- A janela pode ser movida mantendo o botão esquerdo pressionado e arrastando pelo conteúdo.
+- A janela é redimensionável pelas quinas e pode ser maximizada para ocupar a tela. O conteúdo é esticado para preencher a área disponível.
+- O título da janela fica oculto; use o menu de contexto para fechar o aplicativo.
+- O menu de contexto oferece as opções `Tela inteira`, `Restaurar` e `FECHAR`.
 - Para fechar pelo app, clique com o botão direito dentro da janela e depois clique em `FECHAR`.
 
 ## Ubuntu
