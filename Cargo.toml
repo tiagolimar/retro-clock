@@ -1,0 +1,16 @@
+[package]
+name = "relogio-retro"
+version = "0.1.0"
+edition = "2021"
+description = "Relógio digital retro em verde sobre preto"
+license = "MIT"
+
+[dependencies]
+chrono = "0.4"
+minifb = "0.29"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
