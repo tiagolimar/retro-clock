@@ -1,11 +1,10 @@
-use super::colors::BLACK;
 use crate::config::{CANVAS_HEIGHT, CANVAS_WIDTH};
 
 pub const WIDTH: usize = CANVAS_WIDTH;
 pub const HEIGHT: usize = CANVAS_HEIGHT;
 
-pub fn clear(buffer: &mut [u32]) {
-    buffer.fill(BLACK);
+pub fn clear(buffer: &mut [u32], color: u32) {
+    buffer.fill(color);
 }
 
 pub fn fill_rect(buffer: &mut [u32], x: i32, y: i32, width: i32, height: i32, color: u32) {
@@ -23,4 +22,3 @@ pub fn fill_rect(buffer: &mut [u32], x: i32, y: i32, width: i32, height: i32, co
         buffer[start..start + (x1 - x0)].fill(color);
     }
 }
-

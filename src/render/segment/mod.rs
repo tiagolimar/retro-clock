@@ -2,9 +2,7 @@ mod digit;
 mod separator;
 
 use super::canvas::WIDTH;
-
-const GREEN: u32 = 0x0000ff66;
-const GREEN_BRIGHT: u32 = 0x0066ff99;
+use super::colors::Palette;
 
 pub fn draw_large_time(
     buffer: &mut [u32],
@@ -13,6 +11,8 @@ pub fn draw_large_time(
     second: u32,
     y: i32,
     height: i32,
+    palette: Palette,
+    inactive_segments_visible: bool,
 ) {
     let digits = [
         hour / 10,
@@ -30,21 +30,52 @@ pub fn draw_large_time(
     let colon_on = second % 2 == 0;
 
     for (index, digit) in digits.into_iter().enumerate() {
-        digit::draw(buffer, x, y, digit_width, height, digit as usize, GREEN);
+        digit::draw(
+            buffer,
+            x,
+            y,
+            digit_width,
+            height,
+            digit as usize,
+            palette.accent,
+            palette.shadow,
+            inactive_segments_visible,
+        );
         x += digit_step;
 
         if index == 1 || index == 3 {
-            separator::draw(buffer, x - 5, y, height, colon_on);
+            separator::draw(
+                buffer,
+                x - 5,
+                y,
+                height,
+                colon_on,
+                palette,
+                inactive_segments_visible,
+            );
             x += colon_step;
         }
     }
 }
 
-pub fn draw_countdown(buffer: &mut [u32], total_seconds: u32, y: i32) {
+pub fn draw_countdown(
+    buffer: &mut [u32],
+    total_seconds: u32,
+    y: i32,
+    palette: Palette,
+    inactive_segments_visible: bool,
+) {
     let hours = total_seconds / 3600;
     let minutes = (total_seconds % 3600) / 60;
     let seconds = total_seconds % 60;
-    let digits = [hours / 10, hours % 10, minutes / 10, minutes % 10, seconds / 10, seconds % 10];
+    let digits = [
+        hours / 10,
+        hours % 10,
+        minutes / 10,
+        minutes % 10,
+        seconds / 10,
+        seconds % 10,
+    ];
 
     let digit_width = 40;
     let digit_height = 78;
@@ -54,13 +85,30 @@ pub fn draw_countdown(buffer: &mut [u32], total_seconds: u32, y: i32) {
     let mut x = (WIDTH as i32 - total_width) / 2;
 
     for (index, digit) in digits.into_iter().enumerate() {
-        digit::draw(buffer, x, y, digit_width, digit_height, digit as usize, GREEN_BRIGHT);
+        digit::draw(
+            buffer,
+            x,
+            y,
+            digit_width,
+            digit_height,
+            digit as usize,
+            palette.highlight,
+            palette.shadow,
+            inactive_segments_visible,
+        );
         x += digit_step;
 
         if index == 1 || index == 3 {
-            separator::draw(buffer, x - 5, y, digit_height, true);
+            separator::draw(
+                buffer,
+                x - 5,
+                y,
+                digit_height,
+                true,
+                palette,
+                inactive_segments_visible,
+            );
             x += colon_step;
         }
     }
 }
-

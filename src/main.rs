@@ -10,24 +10,18 @@ mod window_mode;
 
 use app::App;
 use config::{CANVAS_HEIGHT, CANVAS_WIDTH};
-use input::MouseInput;
+use input::{KeyboardInput, MouseInput};
+use minifb::{Key, KeyRepeat, MouseButton, MouseMode, ScaleMode, Window, WindowOptions};
 use model::LocalTimeProvider;
-use minifb::{MouseButton, MouseMode, ScaleMode, Window, WindowOptions};
 use ui::UiEvent;
-
-#[derive(Clone, Copy, Debug)]
-struct WindowDrag {
-    window_position: (isize, isize),
-    cursor_position: (isize, isize),
-}
 
 fn main() {
     let mut window = Window::new(
-        "",
+        "Relogio Retro",
         CANVAS_WIDTH,
         CANVAS_HEIGHT,
         WindowOptions {
-            title: false,
+            title: true,
             resize: true,
             scale_mode: ScaleMode::Stretch,
             ..WindowOptions::default()
@@ -41,17 +35,14 @@ fn main() {
     let mut buffer = vec![0; CANVAS_WIDTH * CANVAS_HEIGHT];
     let mut previous_right_down = false;
     let mut previous_left_down = false;
-    let mut menu_visible = false;
-    let mut window_drag = None;
+    let mut fullscreen = false;
 
     while window.is_open() && app.is_running() {
         let (raw_mouse_x, raw_mouse_y) = window
             .get_unscaled_mouse_pos(MouseMode::Clamp)
             .unwrap_or((0.0, 0.0));
-        let (mouse_x, mouse_y) = canvas_mouse_position(
-            window.get_size(),
-            (raw_mouse_x, raw_mouse_y),
-        );
+        let (mouse_x, mouse_y) =
+            canvas_mouse_position(window.get_size(), (raw_mouse_x, raw_mouse_y));
 
         let right_down = window.get_mouse_down(MouseButton::Right);
         let left_down = window.get_mouse_down(MouseButton::Left);
@@ -61,25 +52,25 @@ fn main() {
             right_pressed: right_down && !previous_right_down,
             left_pressed: left_down && !previous_left_down,
         };
-
-        let menu_was_visible = menu_visible;
-        let (view, event) = app.tick(input);
-        menu_visible = view.ui.menu.visible;
-
-        match event {
-            UiEvent::ToggleFullscreen => window_mode::set_fullscreen(&window, true),
-            UiEvent::RestoreWindow => window_mode::set_fullscreen(&window, false),
-            UiEvent::None | UiEvent::ExitRequested => false,
+        let keyboard = KeyboardInput {
+            fullscreen_pressed: window.is_key_pressed(Key::F, KeyRepeat::No),
+            next_theme_pressed: window.is_key_pressed(Key::J, KeyRepeat::No),
+            toggle_sticks_pressed: window.is_key_pressed(Key::K, KeyRepeat::No),
         };
 
-        update_window_drag(
-            &mut window,
-            left_down,
-            input.left_pressed,
-            menu_was_visible,
-            (raw_mouse_x, raw_mouse_y),
-            &mut window_drag,
-        );
+        let (view, event) = app.tick(input, keyboard);
+
+        match event {
+            UiEvent::ToggleFullscreen => {
+                fullscreen = !fullscreen;
+                window_mode::set_fullscreen(&window, fullscreen);
+            }
+            UiEvent::EnterFullscreen => {
+                fullscreen = true;
+                window_mode::set_fullscreen(&window, true);
+            }
+            UiEvent::None | UiEvent::ExitRequested => {}
+        };
 
         render::draw(&mut buffer, &view);
 
@@ -107,38 +98,3 @@ fn canvas_mouse_position(window_size: (usize, usize), mouse_position: (f32, f32)
         y.clamp(0, CANVAS_HEIGHT as i32 - 1),
     )
 }
-
-fn update_window_drag(
-    window: &mut Window,
-    left_down: bool,
-    left_pressed: bool,
-    menu_was_visible: bool,
-    mouse_position: (f32, f32),
-    drag: &mut Option<WindowDrag>,
-) {
-    if !left_down {
-        *drag = None;
-        return;
-    }
-
-    let window_position = window.get_position();
-    let cursor_position = (
-        window_position.0 + mouse_position.0 as isize,
-        window_position.1 + mouse_position.1 as isize,
-    );
-
-    if left_pressed && !menu_was_visible {
-        *drag = Some(WindowDrag {
-            window_position,
-            cursor_position,
-        });
-    }
-
-    if let Some(origin) = *drag {
-        window.set_position(
-            origin.window_position.0 + cursor_position.0 - origin.cursor_position.0,
-            origin.window_position.1 + cursor_position.1 - origin.cursor_position.1,
-        );
-    }
-}
-

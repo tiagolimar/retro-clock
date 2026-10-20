@@ -1,35 +1,82 @@
-use crate::ui::{menu_option_rect, MenuOption, MenuView, MENU_HEIGHT, MENU_WIDTH};
+use crate::ui::{
+    menu_option_rect, theme_menu_rect, theme_option_rect, MenuOption, ThemeOption, UiView,
+    MENU_HEIGHT, MENU_WIDTH,
+};
 
 use super::canvas::fill_rect;
-use super::colors::{BLACK, GREEN, GREEN_BRIGHT, GREEN_DARK, GREEN_DIM, PANEL};
+use super::colors::Palette;
 use super::font;
 
-pub fn draw(
-    buffer: &mut [u32],
-    menu: MenuView,
-    fullscreen_hover: bool,
-    restore_hover: bool,
-    close_hover: bool,
-) {
-    fill_rect(buffer, menu.x + 3, menu.y + 3, MENU_WIDTH, MENU_HEIGHT, GREEN_DARK);
-    fill_rect(buffer, menu.x, menu.y, MENU_WIDTH, MENU_HEIGHT, PANEL);
-    fill_rect(buffer, menu.x, menu.y, MENU_WIDTH, 2, GREEN_DIM);
-    fill_rect(buffer, menu.x, menu.y + MENU_HEIGHT - 2, MENU_WIDTH, 2, GREEN_DIM);
+pub fn draw(buffer: &mut [u32], view: UiView, palette: Palette) {
+    draw_panel(
+        buffer,
+        view.menu.x,
+        view.menu.y,
+        MENU_WIDTH,
+        MENU_HEIGHT,
+        palette,
+    );
 
     let options = [
-        (MenuOption::Fullscreen, "Tela inteira", fullscreen_hover),
-        (MenuOption::Restore, "Restaurar", restore_hover),
-        (MenuOption::Close, "FECHAR", close_hover),
+        (
+            MenuOption::Fullscreen,
+            "Tela inteira",
+            view.fullscreen_hover,
+        ),
+        (MenuOption::Themes, "TEMAS", view.themes_hover),
+        (MenuOption::Close, "FECHAR", view.close_hover),
     ];
 
     for (option, label, hover) in options {
-        let (x, y, width, height) = menu_option_rect(menu, option);
-        if hover {
-            fill_rect(buffer, x, y, width, height, GREEN);
-        }
+        let (x, y, width, height) = menu_option_rect(view.menu, option);
+        draw_option(buffer, x, y, width, height, label, hover, palette);
+    }
 
-        let color = if hover { BLACK } else { GREEN_BRIGHT };
-        font::draw_text(buffer, label, x + 10, y + 6, 2, color);
+    if view.menu.themes_visible {
+        let (x, y, width, height) = theme_menu_rect(view.menu);
+        draw_panel(buffer, x, y, width, height, palette);
+
+        for option in ThemeOption::ALL {
+            let (x, y, width, height) = theme_option_rect(view.menu, option);
+            draw_option(
+                buffer,
+                x,
+                y,
+                width,
+                height,
+                option.label(),
+                view.theme_hovers[option.index()],
+                palette,
+            );
+        }
     }
 }
 
+fn draw_panel(buffer: &mut [u32], x: i32, y: i32, width: i32, height: i32, palette: Palette) {
+    fill_rect(buffer, x + 3, y + 3, width, height, palette.shadow);
+    fill_rect(buffer, x, y, width, height, palette.panel);
+    fill_rect(buffer, x, y, width, 2, palette.muted);
+    fill_rect(buffer, x, y + height - 2, width, 2, palette.muted);
+}
+
+fn draw_option(
+    buffer: &mut [u32],
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+    label: &str,
+    hover: bool,
+    palette: Palette,
+) {
+    if hover {
+        fill_rect(buffer, x, y, width, height, palette.accent);
+    }
+
+    let color = if hover {
+        palette.background
+    } else {
+        palette.highlight
+    };
+    font::draw_text(buffer, label, x + 10, y + 6, 2, color);
+}

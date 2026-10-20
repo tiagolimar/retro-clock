@@ -1,4 +1,4 @@
-use crate::input::MouseInput;
+use crate::input::{KeyboardInput, MouseInput};
 use crate::model::{ClockSnapshot, LocalTimeProvider, TimeProvider};
 use crate::ui::{UiController, UiEvent, UiView};
 
@@ -25,8 +25,8 @@ impl App<LocalTimeProvider> {
 }
 
 impl<T: TimeProvider> App<T> {
-    pub fn tick(&mut self, input: MouseInput) -> (AppView, UiEvent) {
-        let (event, ui) = self.ui.update(input);
+    pub fn tick(&mut self, mouse: MouseInput, keyboard: KeyboardInput) -> (AppView, UiEvent) {
+        let (event, ui) = self.ui.update(mouse, keyboard);
         if event == UiEvent::ExitRequested {
             self.running = false;
         }
@@ -44,4 +44,3 @@ impl<T: TimeProvider> App<T> {
         self.running
     }
 }
-
