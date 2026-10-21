@@ -3,6 +3,7 @@ mod separator;
 
 use super::canvas::WIDTH;
 use super::colors::Palette;
+use crate::model::CountdownStatus;
 
 pub fn draw_large_time(
     buffer: &mut [u32],
@@ -61,6 +62,7 @@ pub fn draw_large_time(
 pub fn draw_countdown(
     buffer: &mut [u32],
     total_seconds: u32,
+    status: CountdownStatus,
     y: i32,
     palette: Palette,
     inactive_segments_visible: bool,
@@ -85,17 +87,30 @@ pub fn draw_countdown(
     let mut x = (WIDTH as i32 - total_width) / 2;
 
     for (index, digit) in digits.into_iter().enumerate() {
-        digit::draw(
-            buffer,
-            x,
-            y,
-            digit_width,
-            digit_height,
-            digit as usize,
-            palette.highlight,
-            palette.shadow,
-            inactive_segments_visible,
-        );
+        if status != CountdownStatus::Active {
+            digit::draw_dash(
+                buffer,
+                x,
+                y,
+                digit_width,
+                digit_height,
+                palette.highlight,
+                palette.shadow,
+                inactive_segments_visible,
+            );
+        } else {
+            digit::draw(
+                buffer,
+                x,
+                y,
+                digit_width,
+                digit_height,
+                digit as usize,
+                palette.highlight,
+                palette.shadow,
+                inactive_segments_visible,
+            );
+        }
         x += digit_step;
 
         if index == 1 || index == 3 {

@@ -15,7 +15,20 @@ pub fn draw_text(buffer: &mut [u32], text: &str, x: i32, y: i32, scale: i32, col
     }
 }
 
-fn text_width(text: &str, scale: i32) -> i32 {
+pub fn draw_text_bold(
+    buffer: &mut [u32],
+    text: &str,
+    x: i32,
+    y: i32,
+    scale: i32,
+    color: u32,
+) {
+    for (offset_x, offset_y) in [(0, 0), (1, 0), (0, 1), (1, 1)] {
+        draw_text(buffer, text, x + offset_x, y + offset_y, scale, color);
+    }
+}
+
+pub fn text_width(text: &str, scale: i32) -> i32 {
     text.chars().count() as i32 * 6 * scale - scale
 }
 

@@ -56,6 +56,7 @@ fn main() {
             fullscreen_pressed: window.is_key_pressed(Key::F, KeyRepeat::No),
             next_theme_pressed: window.is_key_pressed(Key::J, KeyRepeat::No),
             toggle_sticks_pressed: window.is_key_pressed(Key::K, KeyRepeat::No),
+            animation_pressed: window.is_key_pressed(Key::A, KeyRepeat::No),
         };
 
         let (view, event) = app.tick(input, keyboard);
@@ -64,10 +65,6 @@ fn main() {
             UiEvent::ToggleFullscreen => {
                 fullscreen = !fullscreen;
                 window_mode::set_fullscreen(&window, fullscreen);
-            }
-            UiEvent::EnterFullscreen => {
-                fullscreen = true;
-                window_mode::set_fullscreen(&window, true);
             }
             UiEvent::None | UiEvent::ExitRequested => {}
         };

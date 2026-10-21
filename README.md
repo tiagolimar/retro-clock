@@ -5,14 +5,17 @@ Um relógio digital retro em Rust: fundo escuro, temas de cores, hora local em f
 ## Comportamento
 
 - A hora é atualizada usando o horário local do sistema.
-- Antes das 08:00, a contagem mostra o ciclo completo de 9 horas e informa que está aguardando o início.
+- Antes das 08:00 e após as 17:00, a contagem mostra `--:--:--` e informa que está aguardando o ciclo.
 - Entre 08:00 e 17:00, a contagem regressiva vai até 17:00.
-- A partir das 17:00, a contagem fica em `00:00:00` até o próximo ciclo das 08:00.
+- Fora do ciclo, a contagem mostra `--:--:--` com sombras opcionais e uma frase aleatória de descanso.
+- Durante o ciclo, o rodapé mostra `PARA AS 17:00`.
+- Ao finalizar um ciclo, a animação exibe quatro passagens de `ACABOU` e duas de `ACABOOUUUUUUUUUUU`, durante 30 segundos no total. Ela também pode ser disparada pelo atalho `A`.
+- A fonte bitmap inclui letras acentuadas e pontuação usadas pelos textos da interface.
 - A janela usa as decorações nativas do Ubuntu/Ubuntu WSL, com bordas e controles de minimizar, maximizar e fechar.
 - A janela é redimensionável e o conteúdo é esticado para preencher a área disponível.
-- `F` alterna tela inteira; nesse modo as decorações desaparecem e a janela ocupa a tela.
-- O menu de contexto oferece `Tela inteira`, `TEMAS` (`VERDE`, `AMBAR`, `AZUL`, `VERMELHO`, `ROXO`, `CIANO` e `BRANCO`) e `FECHAR`.
-- `J` alterna entre os temas e `K` alterna os sticks transparentes dos segmentos inativos. Para abrir o menu, clique com o botão direito dentro da janela.
+- `F` alterna tela inteira; nesse modo as decorações desaparecem e a janela ocupa a tela. A opção `Tela inteira` do menu também alterna entre os dois estados.
+- O menu de contexto oferece `Tela inteira`, `Ocultar sombras`/`Mostrar sombras`, `TEMAS` (`VERDE`, `ÂMBAR`, `AZUL`, `VERMELHO`, `ROXO`, `CIANO` e `BRANCO`) e `FECHAR`.
+- `J` alterna entre os temas e `K` alterna as sombras dos segmentos inativos. Para abrir o menu, clique com o botão direito dentro da janela.
 
 ## Ubuntu
 
@@ -56,12 +59,14 @@ src/
 ├── config.rs               # dimensões e configuração compartilhada
 ├── input.rs                # modelo de entrada do mouse e teclado
 ├── ui.rs                   # estado e eventos do menu de contexto
+├── window_mode.rs          # controle de tela inteira com as decorações nativas
 ├── model/
 │   ├── clock.rs            # provedor de horário local e snapshot do relógio
 │   └── countdown.rs        # regra 08:00–17:00 e testes unitários
 └── render/
     ├── canvas.rs           # operações básicas de desenho
     ├── colors.rs           # paleta visual
+    ├── animation.rs        # animação pixelizada de encerramento
     ├── frame.rs            # moldura do painel
     ├── context_menu.rs     # desenho do menu de contexto e temas
     ├── font/               # fonte bitmap para textos

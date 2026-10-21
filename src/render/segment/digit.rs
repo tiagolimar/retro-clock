@@ -43,6 +43,36 @@ pub fn draw(
     }
 }
 
+pub fn draw_dash(
+    buffer: &mut [u32],
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+    color: u32,
+    inactive_color: u32,
+    inactive_visible: bool,
+) {
+    let thickness = (width / 6).max(5);
+
+    if inactive_visible {
+        for segment in 0..6 {
+            draw_segment(
+                buffer,
+                x,
+                y,
+                width,
+                height,
+                thickness,
+                segment,
+                inactive_color,
+            );
+        }
+    }
+
+    draw_segment(buffer, x, y, width, height, thickness, 6, color);
+}
+
 fn draw_segment(
     buffer: &mut [u32],
     x: i32,
