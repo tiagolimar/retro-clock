@@ -34,6 +34,7 @@ const OFF_CYCLE_PHRASES: [&str; 20] = [
 
 pub fn draw(buffer: &mut [u32], view: &AppView) {
     let palette = colors::for_theme(view.ui.theme);
+    let segment_shadow = colors::segment_shadow(palette, view.ui.shadow_level);
     canvas::clear(buffer, palette.background);
     frame::draw(buffer, palette);
 
@@ -47,7 +48,7 @@ pub fn draw(buffer: &mut [u32], view: &AppView) {
         106,
         172,
         palette,
-        view.ui.transparent_sticks_visible,
+        segment_shadow,
     );
 
     let short_year = view.clock.year.rem_euclid(100) as u32;
@@ -72,7 +73,7 @@ pub fn draw(buffer: &mut [u32], view: &AppView) {
             view.clock.countdown.status,
             410,
             palette,
-            view.ui.transparent_sticks_visible,
+            segment_shadow,
         );
     }
     font::draw_text_centered(buffer, footer_label(view.clock), 514, 2, palette.muted);

@@ -13,7 +13,7 @@ pub fn draw_large_time(
     y: i32,
     height: i32,
     palette: Palette,
-    inactive_segments_visible: bool,
+    inactive_color: Option<u32>,
 ) {
     let digits = [
         hour / 10,
@@ -39,8 +39,7 @@ pub fn draw_large_time(
             height,
             digit as usize,
             palette.accent,
-            palette.shadow,
-            inactive_segments_visible,
+            inactive_color,
         );
         x += digit_step;
 
@@ -52,7 +51,7 @@ pub fn draw_large_time(
                 height,
                 colon_on,
                 palette,
-                inactive_segments_visible,
+                inactive_color,
             );
             x += colon_step;
         }
@@ -65,7 +64,7 @@ pub fn draw_countdown(
     status: CountdownStatus,
     y: i32,
     palette: Palette,
-    inactive_segments_visible: bool,
+    inactive_color: Option<u32>,
 ) {
     let hours = total_seconds / 3600;
     let minutes = (total_seconds % 3600) / 60;
@@ -95,8 +94,7 @@ pub fn draw_countdown(
                 digit_width,
                 digit_height,
                 palette.highlight,
-                palette.shadow,
-                inactive_segments_visible,
+                inactive_color,
             );
         } else {
             digit::draw(
@@ -107,8 +105,7 @@ pub fn draw_countdown(
                 digit_height,
                 digit as usize,
                 palette.highlight,
-                palette.shadow,
-                inactive_segments_visible,
+                inactive_color,
             );
         }
         x += digit_step;
@@ -121,7 +118,7 @@ pub fn draw_countdown(
                 digit_height,
                 true,
                 palette,
-                inactive_segments_visible,
+                inactive_color,
             );
             x += colon_step;
         }

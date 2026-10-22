@@ -25,11 +25,7 @@ pub fn draw(buffer: &mut [u32], view: UiView, palette: Palette) {
         ),
         (
             MenuOption::Shadows,
-            if view.transparent_sticks_visible {
-                "Ocultar sombras"
-            } else {
-                "Mostrar sombras"
-            },
+            "Ajustar sombra",
             view.shadows_hover,
         ),
         (MenuOption::Themes, "TEMAS", view.themes_hover),

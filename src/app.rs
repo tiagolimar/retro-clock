@@ -49,8 +49,7 @@ impl<T: TimeProvider> App<T> {
         }
 
         let clock = self.time_provider.snapshot();
-        let end_of_cycle_animation =
-            self.end_of_cycle_animation(clock.countdown.status, keyboard.animation_pressed);
+        let end_of_cycle_animation = self.end_of_cycle_animation(clock.countdown.status);
 
         (
             AppView {
@@ -65,11 +64,8 @@ impl<T: TimeProvider> App<T> {
     fn end_of_cycle_animation(
         &mut self,
         countdown_status: CountdownStatus,
-        animation_pressed: bool,
     ) -> Option<EndOfCycleAnimation> {
-        let entered_finished = countdown_status == CountdownStatus::Finished
-            && self.previous_countdown_status != Some(CountdownStatus::Finished);
-        if animation_pressed || entered_finished {
+        if entered_finished(self.previous_countdown_status, countdown_status) {
             self.end_of_cycle_animation_started_at = Some(Instant::now());
         }
 
@@ -89,6 +85,10 @@ impl<T: TimeProvider> App<T> {
     pub fn is_running(&self) -> bool {
         self.running
     }
+}
+
+fn entered_finished(previous_status: Option<CountdownStatus>, status: CountdownStatus) -> bool {
+    previous_status == Some(CountdownStatus::Active) && status == CountdownStatus::Finished
 }
 
 fn animation_at(elapsed: Duration) -> Option<EndOfCycleAnimation> {
@@ -112,8 +112,25 @@ fn animation_at(elapsed: Duration) -> Option<EndOfCycleAnimation> {
 
 #[cfg(test)]
 mod tests {
-    use super::{animation_at, END_OF_CYCLE_ANIMATION_FINAL_TEXT, END_OF_CYCLE_ANIMATION_TEXT};
+    use super::{
+        animation_at, entered_finished, END_OF_CYCLE_ANIMATION_FINAL_TEXT,
+        END_OF_CYCLE_ANIMATION_TEXT,
+    };
+    use crate::model::CountdownStatus;
     use std::time::Duration;
+
+    #[test]
+    fn end_of_cycle_animation_only_starts_after_an_active_cycle() {
+        assert!(entered_finished(
+            Some(CountdownStatus::Active),
+            CountdownStatus::Finished
+        ));
+        assert!(!entered_finished(None, CountdownStatus::Finished));
+        assert!(!entered_finished(
+            Some(CountdownStatus::WaitingForStart),
+            CountdownStatus::Finished
+        ));
+    }
 
     #[test]
     fn end_of_cycle_animation_repeats_four_times_and_final_twice() {

@@ -9,13 +9,16 @@ pub fn draw(
     height: i32,
     on: bool,
     palette: Palette,
-    inactive_visible: bool,
+    inactive_color: Option<u32>,
 ) {
-    if !on && !inactive_visible {
+    let Some(color) = (if on {
+        Some(palette.accent)
+    } else {
+        inactive_color
+    }) else {
         return;
-    }
+    };
 
-    let color = if on { palette.accent } else { palette.shadow };
     let size = (height / 10).max(6);
     fill_rect(buffer, x, y + height / 3, size, size, color);
     fill_rect(buffer, x, y + (height * 2) / 3, size, size, color);

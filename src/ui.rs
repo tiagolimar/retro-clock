@@ -1,4 +1,4 @@
-use crate::config::{Theme, CANVAS_HEIGHT, CANVAS_WIDTH};
+use crate::config::{ShadowLevel, Theme, CANVAS_HEIGHT, CANVAS_WIDTH};
 use crate::input::{KeyboardInput, MouseInput};
 
 pub const MENU_WIDTH: i32 = 210;
@@ -94,7 +94,7 @@ pub struct UiView {
     pub themes_hover: bool,
     pub close_hover: bool,
     pub theme_hovers: [bool; THEME_OPTION_COUNT as usize],
-    pub transparent_sticks_visible: bool,
+    pub shadow_level: ShadowLevel,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -107,7 +107,7 @@ pub enum UiEvent {
 pub struct UiController {
     menu: MenuView,
     theme: Theme,
-    transparent_sticks_visible: bool,
+    shadow_level: ShadowLevel,
 }
 
 impl UiController {
@@ -115,7 +115,7 @@ impl UiController {
         UiController {
             menu: MenuView::default(),
             theme: Theme::default(),
-            transparent_sticks_visible: true,
+            shadow_level: ShadowLevel::default(),
         }
     }
 
@@ -126,8 +126,8 @@ impl UiController {
             self.theme = self.theme.next();
         }
 
-        if keyboard.toggle_sticks_pressed {
-            self.transparent_sticks_visible = !self.transparent_sticks_visible;
+        if keyboard.adjust_shadows_pressed {
+            self.shadow_level = self.shadow_level.next();
         }
 
         if keyboard.fullscreen_pressed {
@@ -185,7 +185,7 @@ impl UiController {
                 self.menu.themes_visible = false;
                 event = UiEvent::ToggleFullscreen;
             } else if shadows_hover {
-                self.transparent_sticks_visible = !self.transparent_sticks_visible;
+                self.shadow_level = self.shadow_level.next();
             } else if themes_hover {
                 self.menu.themes_visible = true;
             } else if close_hover {
@@ -212,7 +212,7 @@ impl UiController {
                 themes_hover: self.menu.visible && themes_hover,
                 close_hover: self.menu.visible && close_hover,
                 theme_hovers,
-                transparent_sticks_visible: self.transparent_sticks_visible,
+                shadow_level: self.shadow_level,
             },
         )
     }
@@ -270,7 +270,7 @@ mod tests {
     use super::{
         menu_option_rect, theme_option_rect, MenuOption, ThemeOption, UiController, UiEvent,
     };
-    use crate::config::Theme;
+    use crate::config::{ShadowLevel, Theme};
     use crate::input::{KeyboardInput, MouseInput};
 
     fn open_menu(controller: &mut UiController) -> super::MenuView {
@@ -316,23 +316,29 @@ mod tests {
     }
 
     #[test]
-    fn shadows_option_toggles_inactive_segments() {
+    fn shadows_option_cycles_levels_and_keeps_menu_open() {
         let mut controller = UiController::new();
         let menu = open_menu(&mut controller);
         let (x, y, width, height) = menu_option_rect(menu, MenuOption::Shadows);
 
-        let (event, view) = controller.update(
-            MouseInput {
-                x: x + width / 2,
-                y: y + height / 2,
-                left_pressed: true,
-                ..MouseInput::default()
-            },
-            KeyboardInput::default(),
-        );
+        let input = MouseInput {
+            x: x + width / 2,
+            y: y + height / 2,
+            left_pressed: true,
+            ..MouseInput::default()
+        };
+        let (event, view) = controller.update(input, KeyboardInput::default());
 
         assert_eq!(event, UiEvent::None);
-        assert!(!view.transparent_sticks_visible);
+        assert_eq!(view.shadow_level, ShadowLevel::Half);
+        assert!(view.menu.visible);
+
+        let (_, view) = controller.update(input, KeyboardInput::default());
+        assert_eq!(view.shadow_level, ShadowLevel::None);
+        assert!(view.menu.visible);
+
+        let (_, view) = controller.update(input, KeyboardInput::default());
+        assert_eq!(view.shadow_level, ShadowLevel::Full);
         assert!(view.menu.visible);
     }
 
@@ -365,17 +371,19 @@ mod tests {
     fn keyboard_shortcuts_toggle_fullscreen_and_cycle_themes() {
         let mut controller = UiController::new();
         let (event, view) = controller.update(
-            MouseInput::default(),
+            MouseInput {
+                ..MouseInput::default()
+            },
             KeyboardInput {
                 fullscreen_pressed: true,
                 next_theme_pressed: true,
-                toggle_sticks_pressed: true,
-                animation_pressed: false,
+                adjust_shadows_pressed: true,
+                alert_pressed: false,
             },
         );
 
         assert_eq!(event, UiEvent::ToggleFullscreen);
         assert_eq!(view.theme, Theme::Amber);
-        assert!(!view.transparent_sticks_visible);
+        assert_eq!(view.shadow_level, ShadowLevel::Half);
     }
 }
