@@ -1,10 +1,10 @@
-use crate::config::{Theme, CANVAS_HEIGHT, CANVAS_WIDTH};
+use crate::config::{ShadowLevel, Theme, CANVAS_HEIGHT, CANVAS_WIDTH};
 use crate::input::{KeyboardInput, MouseInput};
 
 pub const MENU_WIDTH: i32 = 210;
 pub const MENU_OPTION_HEIGHT: i32 = 28;
 pub const MENU_OPTION_GAP: i32 = 4;
-pub const MENU_HEIGHT: i32 = 2 * 10 + 3 * MENU_OPTION_HEIGHT + 2 * MENU_OPTION_GAP;
+pub const MENU_HEIGHT: i32 = 2 * 10 + 4 * MENU_OPTION_HEIGHT + 3 * MENU_OPTION_GAP;
 pub const THEME_MENU_WIDTH: i32 = 150;
 pub const THEME_OPTION_COUNT: i32 = 7;
 pub const THEME_MENU_HEIGHT: i32 =
@@ -13,6 +13,7 @@ pub const THEME_MENU_HEIGHT: i32 =
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MenuOption {
     Fullscreen,
+    Shadows,
     Themes,
     Close,
 }
@@ -54,7 +55,7 @@ impl ThemeOption {
     pub fn label(self) -> &'static str {
         match self {
             Self::Green => "VERDE",
-            Self::Amber => "AMBAR",
+            Self::Amber => "ÂMBAR",
             Self::Blue => "AZUL",
             Self::Red => "VERMELHO",
             Self::Violet => "ROXO",
@@ -89,10 +90,11 @@ pub struct UiView {
     pub menu: MenuView,
     pub theme: Theme,
     pub fullscreen_hover: bool,
+    pub shadows_hover: bool,
     pub themes_hover: bool,
     pub close_hover: bool,
     pub theme_hovers: [bool; THEME_OPTION_COUNT as usize],
-    pub transparent_sticks_visible: bool,
+    pub shadow_level: ShadowLevel,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -100,13 +102,12 @@ pub enum UiEvent {
     None,
     ExitRequested,
     ToggleFullscreen,
-    EnterFullscreen,
 }
 
 pub struct UiController {
     menu: MenuView,
     theme: Theme,
-    transparent_sticks_visible: bool,
+    shadow_level: ShadowLevel,
 }
 
 impl UiController {
@@ -114,7 +115,7 @@ impl UiController {
         UiController {
             menu: MenuView::default(),
             theme: Theme::default(),
-            transparent_sticks_visible: true,
+            shadow_level: ShadowLevel::default(),
         }
     }
 
@@ -125,8 +126,8 @@ impl UiController {
             self.theme = self.theme.next();
         }
 
-        if keyboard.toggle_sticks_pressed {
-            self.transparent_sticks_visible = !self.transparent_sticks_visible;
+        if keyboard.adjust_shadows_pressed {
+            self.shadow_level = self.shadow_level.next();
         }
 
         if keyboard.fullscreen_pressed {
@@ -149,6 +150,12 @@ impl UiController {
                 input.x,
                 input.y,
                 menu_option_rect(self.menu, MenuOption::Fullscreen),
+            );
+        let shadows_hover = self.menu.visible
+            && point_in_rect(
+                input.x,
+                input.y,
+                menu_option_rect(self.menu, MenuOption::Shadows),
             );
         let themes_hover = self.menu.visible
             && point_in_rect(
@@ -176,7 +183,9 @@ impl UiController {
             } else if fullscreen_hover {
                 self.menu.visible = false;
                 self.menu.themes_visible = false;
-                event = UiEvent::EnterFullscreen;
+                event = UiEvent::ToggleFullscreen;
+            } else if shadows_hover {
+                self.shadow_level = self.shadow_level.next();
             } else if themes_hover {
                 self.menu.themes_visible = true;
             } else if close_hover {
@@ -199,10 +208,11 @@ impl UiController {
                 menu: self.menu,
                 theme: self.theme,
                 fullscreen_hover: self.menu.visible && fullscreen_hover,
+                shadows_hover: self.menu.visible && shadows_hover,
                 themes_hover: self.menu.visible && themes_hover,
                 close_hover: self.menu.visible && close_hover,
                 theme_hovers,
-                transparent_sticks_visible: self.transparent_sticks_visible,
+                shadow_level: self.shadow_level,
             },
         )
     }
@@ -211,8 +221,9 @@ impl UiController {
 pub fn menu_option_rect(menu: MenuView, option: MenuOption) -> (i32, i32, i32, i32) {
     let row = match option {
         MenuOption::Fullscreen => 0,
-        MenuOption::Themes => 1,
-        MenuOption::Close => 2,
+        MenuOption::Shadows => 1,
+        MenuOption::Themes => 2,
+        MenuOption::Close => 3,
     };
     let y = menu.y + 10 + row * (MENU_OPTION_HEIGHT + MENU_OPTION_GAP);
 
@@ -259,7 +270,7 @@ mod tests {
     use super::{
         menu_option_rect, theme_option_rect, MenuOption, ThemeOption, UiController, UiEvent,
     };
-    use crate::config::Theme;
+    use crate::config::{ShadowLevel, Theme};
     use crate::input::{KeyboardInput, MouseInput};
 
     fn open_menu(controller: &mut UiController) -> super::MenuView {
@@ -290,18 +301,45 @@ mod tests {
             },
             KeyboardInput::default(),
         );
-        assert!(!view.menu.visible || option == MenuOption::Themes);
+        assert!(!view.menu.visible || matches!(option, MenuOption::Shadows | MenuOption::Themes));
         event
     }
 
     #[test]
-    fn fullscreen_option_emits_enter_event() {
+    fn fullscreen_option_emits_toggle_event() {
         let mut controller = UiController::new();
         let menu = open_menu(&mut controller);
         assert_eq!(
             click_option(&mut controller, menu, MenuOption::Fullscreen),
-            UiEvent::EnterFullscreen
+            UiEvent::ToggleFullscreen
         );
+    }
+
+    #[test]
+    fn shadows_option_cycles_levels_and_keeps_menu_open() {
+        let mut controller = UiController::new();
+        let menu = open_menu(&mut controller);
+        let (x, y, width, height) = menu_option_rect(menu, MenuOption::Shadows);
+
+        let input = MouseInput {
+            x: x + width / 2,
+            y: y + height / 2,
+            left_pressed: true,
+            ..MouseInput::default()
+        };
+        let (event, view) = controller.update(input, KeyboardInput::default());
+
+        assert_eq!(event, UiEvent::None);
+        assert_eq!(view.shadow_level, ShadowLevel::Half);
+        assert!(view.menu.visible);
+
+        let (_, view) = controller.update(input, KeyboardInput::default());
+        assert_eq!(view.shadow_level, ShadowLevel::None);
+        assert!(view.menu.visible);
+
+        let (_, view) = controller.update(input, KeyboardInput::default());
+        assert_eq!(view.shadow_level, ShadowLevel::Full);
+        assert!(view.menu.visible);
     }
 
     #[test]
@@ -333,17 +371,20 @@ mod tests {
     fn keyboard_shortcuts_toggle_fullscreen_and_cycle_themes() {
         let mut controller = UiController::new();
         let (event, view) = controller.update(
-            MouseInput::default(),
+            MouseInput {
+                ..MouseInput::default()
+            },
             KeyboardInput {
                 celebration_pressed: false,
                 fullscreen_pressed: true,
                 next_theme_pressed: true,
-                toggle_sticks_pressed: true,
+                adjust_shadows_pressed: true,
+                alert_pressed: false,
             },
         );
 
         assert_eq!(event, UiEvent::ToggleFullscreen);
         assert_eq!(view.theme, Theme::Amber);
-        assert!(!view.transparent_sticks_visible);
+        assert_eq!(view.shadow_level, ShadowLevel::Half);
     }
 }

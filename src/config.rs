@@ -2,6 +2,24 @@ pub const CANVAS_WIDTH: usize = 960;
 pub const CANVAS_HEIGHT: usize = 560;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum ShadowLevel {
+    #[default]
+    Full,
+    Half,
+    None,
+}
+
+impl ShadowLevel {
+    pub fn next(self) -> Self {
+        match self {
+            Self::Full => Self::Half,
+            Self::Half => Self::None,
+            Self::None => Self::Full,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Theme {
     #[default]
     Green,

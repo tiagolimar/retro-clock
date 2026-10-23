@@ -34,8 +34,7 @@ fn set_native_fullscreen(window: &Window, fullscreen: bool) -> bool {
 
     unsafe {
         let state = (xlib.XInternAtom)(display, state_name.as_ptr(), xlib::False);
-        let fullscreen_atom =
-            (xlib.XInternAtom)(display, fullscreen_name.as_ptr(), xlib::False);
+        let fullscreen_atom = (xlib.XInternAtom)(display, fullscreen_name.as_ptr(), xlib::False);
         let root = (xlib.XDefaultRootWindow)(display);
         let mut event: xlib::XEvent = mem::zeroed();
         event.client_message = xlib::XClientMessageEvent {

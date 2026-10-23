@@ -1,3 +1,4 @@
+use crate::config::ShadowLevel;
 use crate::config::Theme;
 
 #[derive(Clone, Copy, Debug)]
@@ -8,6 +9,22 @@ pub struct Palette {
     pub muted: u32,
     pub accent: u32,
     pub highlight: u32,
+}
+
+pub fn segment_shadow(palette: Palette, level: ShadowLevel) -> Option<u32> {
+    match level {
+        ShadowLevel::Full => Some(palette.shadow),
+        ShadowLevel::Half => Some(blend_half(palette.background, palette.shadow)),
+        ShadowLevel::None => None,
+    }
+}
+
+fn blend_half(first: u32, second: u32) -> u32 {
+    let red = (((first >> 16) & 0xff) + ((second >> 16) & 0xff)) / 2;
+    let green = (((first >> 8) & 0xff) + ((second >> 8) & 0xff)) / 2;
+    let blue = ((first & 0xff) + (second & 0xff)) / 2;
+
+    (red << 16) | (green << 8) | blue
 }
 
 pub fn for_theme(theme: Theme) -> Palette {

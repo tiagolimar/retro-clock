@@ -5,16 +5,19 @@ Um relógio digital retro em Rust: fundo escuro, temas de cores, hora local em f
 ## Comportamento
 
 - A hora é atualizada usando o horário local do sistema.
-- Antes das 08:00, a contagem mostra o ciclo completo de 9 horas e informa que está aguardando o início.
+- Antes das 08:00 e após as 17:00, a contagem mostra `--:--:--` e informa que está aguardando o ciclo.
 - Entre 08:00 e 17:00, a contagem regressiva vai até 17:00.
-- A partir das 17:00, a contagem fica em `00:00:00` até o próximo ciclo das 08:00.
 - Um contador discreto no topo mostra quanto falta para a próxima sexta-feira às 17:00.
 - Ao chegar à sexta-feira às 17:00, uma animação global de aproximadamente 20 segundos cobre a tela; `A` dispara a mesma animação manualmente para testes.
+- Fora do ciclo, a contagem mostra `--:--:--` com sombras opcionais e uma frase aleatória de descanso.
+- Durante o ciclo, o rodapé mostra `PARA AS 17:00`.
+- Ao finalizar um ciclo, a animação exibe quatro passagens de `ACABOU` e duas de `ACABOOUUUUUUUUUUU`, durante 30 segundos no total.
+- A fonte bitmap inclui letras acentuadas e pontuação usadas pelos textos da interface.
 - A janela usa as decorações nativas do Ubuntu/Ubuntu WSL, com bordas e controles de minimizar, maximizar e fechar.
 - A janela é redimensionável e o conteúdo é esticado para preencher a área disponível.
-- `F` alterna tela inteira; nesse modo as decorações desaparecem e a janela ocupa a tela.
-- O menu de contexto oferece `Tela inteira`, `TEMAS` (`VERDE`, `AMBAR`, `AZUL`, `VERMELHO`, `ROXO`, `CIANO` e `BRANCO`) e `FECHAR`.
-- `J` alterna entre os temas e `K` alterna os sticks transparentes dos segmentos inativos. Para abrir o menu, clique com o botão direito dentro da janela.
+- `F` alterna tela inteira; nesse modo as decorações desaparecem e a janela ocupa a tela. A opção `Tela inteira` do menu também alterna entre os dois estados.
+- O menu de contexto oferece `Tela inteira`, `Ajustar sombra`, `TEMAS` (`VERDE`, `ÂMBAR`, `AZUL`, `VERMELHO`, `ROXO`, `CIANO` e `BRANCO`) e `FECHAR`. `Ajustar sombra` percorre sombra completa, meia sombra e sem sombra, mantendo o menu aberto.
+- `J` alterna entre os temas, `K` percorre os três níveis de sombra e `A` dispara a celebração global e uma sequência de oito bipes nativos, espaçados por 280 ms. Para abrir o menu, clique com o botão direito dentro da janela.
 
 ## Ubuntu
 
@@ -45,7 +48,7 @@ cargo build --release
 
 O binário ficará em `target/release/relogio-retro`.
 
-O programa usa `minifb` 0.29 com backend X11 para a janela/pixels e `chrono` 0.4 para ler o relógio local. O backend X11 também cobre o XWayland normalmente disponibilizado pelo Ubuntu/WSLg e permite que o atalho `F` controle a tela inteira com as decorações nativas.
+O programa usa `minifb` 0.29 com backend X11 para a janela/pixels e `chrono` 0.4 para ler o relógio local. No Linux, o alerta sonoro usa o `XBell` nativo do X11; no Windows, usa `MessageBeep`. O backend X11 também cobre o XWayland normalmente disponibilizado pelo Ubuntu/WSLg e permite que o atalho `F` controle a tela inteira com as decorações nativas.
 
 ## Organização do código
 
@@ -57,7 +60,9 @@ src/
 ├── app.rs                  # coordenação de um ciclo da aplicação
 ├── config.rs               # dimensões e configuração compartilhada
 ├── input.rs                # modelo de entrada do mouse e teclado
+├── sound.rs                # alerta sonoro nativo acionado pelo atalho A
 ├── ui.rs                   # estado e eventos do menu de contexto
+├── window_mode.rs          # controle de tela inteira com as decorações nativas
 ├── model/
 │   ├── clock.rs            # provedor de horário local e snapshot do relógio
 │   └── countdown.rs        # regra 08:00–17:00 e testes unitários
@@ -65,6 +70,7 @@ src/
     ├── canvas.rs           # operações básicas de desenho
     ├── colors.rs           # paleta visual
     ├── celebration.rs      # animação global de sexta-feira
+    ├── animation.rs        # animação pixelizada de encerramento
     ├── frame.rs            # moldura do painel
     ├── context_menu.rs     # desenho do menu de contexto e temas
     ├── font/               # fonte bitmap para textos

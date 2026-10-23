@@ -23,6 +23,7 @@ pub fn draw(buffer: &mut [u32], view: UiView, palette: Palette) {
             "Tela inteira",
             view.fullscreen_hover,
         ),
+        (MenuOption::Shadows, "Ajustar sombra", view.shadows_hover),
         (MenuOption::Themes, "TEMAS", view.themes_hover),
         (MenuOption::Close, "FECHAR", view.close_hover),
     ];

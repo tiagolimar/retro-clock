@@ -21,14 +21,15 @@ pub fn draw(
     height: i32,
     digit: usize,
     color: u32,
-    inactive_color: u32,
-    inactive_visible: bool,
+    inactive_color: Option<u32>,
 ) {
     let thickness = (width / 6).max(5);
     let segments = SEGMENTS[digit.min(9)];
 
     for (index, active) in segments.into_iter().enumerate() {
-        if active || inactive_visible {
+        if active {
+            draw_segment(buffer, x, y, width, height, thickness, index, color);
+        } else if let Some(inactive_color) = inactive_color {
             draw_segment(
                 buffer,
                 x,
@@ -37,10 +38,39 @@ pub fn draw(
                 height,
                 thickness,
                 index,
-                if active { color } else { inactive_color },
+                inactive_color,
             );
         }
     }
+}
+
+pub fn draw_dash(
+    buffer: &mut [u32],
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+    color: u32,
+    inactive_color: Option<u32>,
+) {
+    let thickness = (width / 6).max(5);
+
+    if let Some(inactive_color) = inactive_color {
+        for segment in 0..6 {
+            draw_segment(
+                buffer,
+                x,
+                y,
+                width,
+                height,
+                thickness,
+                segment,
+                inactive_color,
+            );
+        }
+    }
+
+    draw_segment(buffer, x, y, width, height, thickness, 6, color);
 }
 
 fn draw_segment(

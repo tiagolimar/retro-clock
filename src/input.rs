@@ -11,5 +11,6 @@ pub struct KeyboardInput {
     pub celebration_pressed: bool,
     pub fullscreen_pressed: bool,
     pub next_theme_pressed: bool,
-    pub toggle_sticks_pressed: bool,
+    pub adjust_shadows_pressed: bool,
+    pub alert_pressed: bool,
 }

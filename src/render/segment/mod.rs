@@ -3,6 +3,7 @@ mod separator;
 
 use super::canvas::WIDTH;
 use super::colors::Palette;
+use crate::model::CountdownStatus;
 
 pub fn draw_large_time(
     buffer: &mut [u32],
@@ -12,7 +13,7 @@ pub fn draw_large_time(
     y: i32,
     height: i32,
     palette: Palette,
-    inactive_segments_visible: bool,
+    inactive_color: Option<u32>,
 ) {
     let digits = [
         hour / 10,
@@ -38,21 +39,12 @@ pub fn draw_large_time(
             height,
             digit as usize,
             palette.accent,
-            palette.shadow,
-            inactive_segments_visible,
+            inactive_color,
         );
         x += digit_step;
 
         if index == 1 || index == 3 {
-            separator::draw(
-                buffer,
-                x - 5,
-                y,
-                height,
-                colon_on,
-                palette,
-                inactive_segments_visible,
-            );
+            separator::draw(buffer, x - 5, y, height, colon_on, palette, inactive_color);
             x += colon_step;
         }
     }
@@ -61,9 +53,10 @@ pub fn draw_large_time(
 pub fn draw_countdown(
     buffer: &mut [u32],
     total_seconds: u32,
+    status: CountdownStatus,
     y: i32,
     palette: Palette,
-    inactive_segments_visible: bool,
+    inactive_color: Option<u32>,
 ) {
     let hours = total_seconds / 3600;
     let minutes = (total_seconds % 3600) / 60;
@@ -85,17 +78,28 @@ pub fn draw_countdown(
     let mut x = (WIDTH as i32 - total_width) / 2;
 
     for (index, digit) in digits.into_iter().enumerate() {
-        digit::draw(
-            buffer,
-            x,
-            y,
-            digit_width,
-            digit_height,
-            digit as usize,
-            palette.highlight,
-            palette.shadow,
-            inactive_segments_visible,
-        );
+        if status != CountdownStatus::Active {
+            digit::draw_dash(
+                buffer,
+                x,
+                y,
+                digit_width,
+                digit_height,
+                palette.highlight,
+                inactive_color,
+            );
+        } else {
+            digit::draw(
+                buffer,
+                x,
+                y,
+                digit_width,
+                digit_height,
+                digit as usize,
+                palette.highlight,
+                inactive_color,
+            );
+        }
         x += digit_step;
 
         if index == 1 || index == 3 {
@@ -106,7 +110,7 @@ pub fn draw_countdown(
                 digit_height,
                 true,
                 palette,
-                inactive_segments_visible,
+                inactive_color,
             );
             x += colon_step;
         }
