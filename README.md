@@ -8,7 +8,7 @@ Um relógio digital retro em Rust: fundo escuro, temas de cores, hora local em f
 - Antes das 08:00 e após as 17:00, a contagem mostra `--:--:--` e informa que está aguardando o ciclo.
 - Entre 08:00 e 17:00, a contagem regressiva vai até 17:00.
 - Um contador discreto no topo mostra quanto falta para a próxima sexta-feira às 17:00.
-- Ao chegar à sexta-feira às 17:00, uma animação global de aproximadamente 20 segundos cobre a tela; `A` dispara a mesma animação manualmente para testes.
+- Ao chegar à sexta-feira às 17:00, uma contagem regressiva global de 10 segundos prepara uma animação de 20 segundos que cobre a tela; `A` dispara a sequência completa manualmente para testes.
 - Fora do ciclo, a contagem mostra `--:--:--` com sombras opcionais e uma frase aleatória de descanso.
 - Durante o ciclo, o rodapé mostra `PARA AS 17:00`.
 - Ao finalizar um ciclo, a animação exibe quatro passagens de `ACABOU` e duas de `ACABOOUUUUUUUUUUU`, durante 30 segundos no total.

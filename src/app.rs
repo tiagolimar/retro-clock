@@ -11,7 +11,7 @@ const END_OF_CYCLE_ANIMATION_PASSES: u64 = 6;
 const END_OF_CYCLE_ANIMATION_PASS_DURATION: Duration = Duration::from_secs(5);
 const END_OF_CYCLE_ANIMATION_TEXT: &str = "ACABOU";
 const END_OF_CYCLE_ANIMATION_FINAL_TEXT: &str = "ACABOOUUUUUUUUUUU";
-const CELEBRATION_DURATION: Duration = Duration::from_secs(20);
+const CELEBRATION_SEQUENCE_DURATION: Duration = Duration::from_secs(30);
 
 pub struct App<T: TimeProvider> {
     time_provider: T,
@@ -94,13 +94,13 @@ impl<T: TimeProvider> App<T> {
         let started_at = self.celebration_started_at?;
         let elapsed = started_at.elapsed();
 
-        if elapsed >= CELEBRATION_DURATION {
+        if elapsed >= CELEBRATION_SEQUENCE_DURATION {
             self.celebration_started_at = None;
             return None;
         }
 
         Some(CelebrationView {
-            progress: elapsed.as_secs_f32() / CELEBRATION_DURATION.as_secs_f32(),
+            progress: elapsed.as_secs_f32() / CELEBRATION_SEQUENCE_DURATION.as_secs_f32(),
         })
     }
 
