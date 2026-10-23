@@ -8,6 +8,7 @@ pub struct MouseInput {
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct KeyboardInput {
+    pub celebration_pressed: bool,
     pub fullscreen_pressed: bool,
     pub next_theme_pressed: bool,
     pub toggle_sticks_pressed: bool,

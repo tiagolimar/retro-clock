@@ -8,6 +8,8 @@ Um relógio digital retro em Rust: fundo escuro, temas de cores, hora local em f
 - Antes das 08:00, a contagem mostra o ciclo completo de 9 horas e informa que está aguardando o início.
 - Entre 08:00 e 17:00, a contagem regressiva vai até 17:00.
 - A partir das 17:00, a contagem fica em `00:00:00` até o próximo ciclo das 08:00.
+- Um contador discreto no topo mostra quanto falta para a próxima sexta-feira às 17:00.
+- Ao chegar à sexta-feira às 17:00, uma animação global de aproximadamente 20 segundos cobre a tela; `A` dispara a mesma animação manualmente para testes.
 - A janela usa as decorações nativas do Ubuntu/Ubuntu WSL, com bordas e controles de minimizar, maximizar e fechar.
 - A janela é redimensionável e o conteúdo é esticado para preencher a área disponível.
 - `F` alterna tela inteira; nesse modo as decorações desaparecem e a janela ocupa a tela.
@@ -62,6 +64,7 @@ src/
 └── render/
     ├── canvas.rs           # operações básicas de desenho
     ├── colors.rs           # paleta visual
+    ├── celebration.rs      # animação global de sexta-feira
     ├── frame.rs            # moldura do painel
     ├── context_menu.rs     # desenho do menu de contexto e temas
     ├── font/               # fonte bitmap para textos

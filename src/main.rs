@@ -53,6 +53,7 @@ fn main() {
             left_pressed: left_down && !previous_left_down,
         };
         let keyboard = KeyboardInput {
+            celebration_pressed: window.is_key_pressed(Key::A, KeyRepeat::No),
             fullscreen_pressed: window.is_key_pressed(Key::F, KeyRepeat::No),
             next_theme_pressed: window.is_key_pressed(Key::J, KeyRepeat::No),
             toggle_sticks_pressed: window.is_key_pressed(Key::K, KeyRepeat::No),

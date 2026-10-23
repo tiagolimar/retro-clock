@@ -335,6 +335,7 @@ mod tests {
         let (event, view) = controller.update(
             MouseInput::default(),
             KeyboardInput {
+                celebration_pressed: false,
                 fullscreen_pressed: true,
                 next_theme_pressed: true,
                 toggle_sticks_pressed: true,
