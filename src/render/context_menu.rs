@@ -25,6 +25,16 @@ pub fn draw(buffer: &mut [u32], view: UiView, palette: Palette) {
         ),
         (MenuOption::Shadows, "Ajustar sombra", view.shadows_hover),
         (MenuOption::Themes, "TEMAS", view.themes_hover),
+        (
+            MenuOption::AdvanceGlobalDay,
+            "AVANÇAR",
+            view.advance_global_day_hover,
+        ),
+        (
+            MenuOption::RewindGlobalDay,
+            "VOLTAR",
+            view.rewind_global_day_hover,
+        ),
         (MenuOption::Close, "FECHAR", view.close_hover),
     ];
 

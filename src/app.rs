@@ -3,7 +3,8 @@ use std::time::{Duration, Instant};
 
 use crate::input::{KeyboardInput, MouseInput};
 use crate::model::{
-    friday_target_crossed, ClockSnapshot, CountdownStatus, LocalTimeProvider, TimeProvider,
+    global_celebration_crossed, ClockSnapshot, CountdownStatus, LocalTimeProvider, TimeProvider,
+    CELEBRATION_LEAD_SECONDS,
 };
 use crate::ui::{UiController, UiEvent, UiView};
 
@@ -17,6 +18,7 @@ pub struct App<T: TimeProvider> {
     time_provider: T,
     ui: UiController,
     running: bool,
+    global_weekday_offset: i32,
     last_moment: Option<DateTime<Local>>,
     celebration_started_at: Option<Instant>,
     previous_countdown_status: Option<CountdownStatus>,
@@ -48,6 +50,7 @@ impl App<LocalTimeProvider> {
             time_provider,
             ui: UiController::new(),
             running: true,
+            global_weekday_offset: 0,
             last_moment: None,
             celebration_started_at: None,
             previous_countdown_status: None,
@@ -59,15 +62,19 @@ impl App<LocalTimeProvider> {
 impl<T: TimeProvider> App<T> {
     pub fn tick(&mut self, mouse: MouseInput, keyboard: KeyboardInput) -> (AppView, UiEvent) {
         let (event, ui) = self.ui.update(mouse, keyboard);
-        let clock = self.time_provider.snapshot();
+        self.apply_global_day_event(event);
+        let clock = self.time_provider.snapshot(self.global_weekday_offset);
 
-        let friday_target_reached = self
-            .last_moment
-            .map_or(clock.friday_countdown.remaining_seconds == 0, |previous| {
-                friday_target_crossed(previous, clock.moment)
-            });
+        let celebration_threshold_reached = self.last_moment.map_or(
+            clock.global_countdown.remaining_seconds <= CELEBRATION_LEAD_SECONDS as u32,
+            |previous| {
+                global_celebration_crossed(previous, clock.moment, self.global_weekday_offset)
+            },
+        );
 
-        if keyboard.celebration_pressed || friday_target_reached {
+        if keyboard.celebration_pressed
+            || (celebration_threshold_reached && self.celebration_started_at.is_none())
+        {
             self.celebration_started_at = Some(Instant::now());
         }
 
@@ -127,6 +134,18 @@ impl<T: TimeProvider> App<T> {
 
     pub fn is_running(&self) -> bool {
         self.running
+    }
+
+    fn apply_global_day_event(&mut self, event: UiEvent) {
+        match event {
+            UiEvent::AdvanceGlobalDay => {
+                self.global_weekday_offset = (self.global_weekday_offset + 1).rem_euclid(7);
+            }
+            UiEvent::RewindGlobalDay => {
+                self.global_weekday_offset = (self.global_weekday_offset - 1).rem_euclid(7);
+            }
+            UiEvent::None | UiEvent::ExitRequested | UiEvent::ToggleFullscreen => {}
+        }
     }
 }
 

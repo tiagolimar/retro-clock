@@ -72,7 +72,10 @@ fn main() {
                 fullscreen = !fullscreen;
                 window_mode::set_fullscreen(&window, fullscreen);
             }
-            UiEvent::None | UiEvent::ExitRequested => {}
+            UiEvent::AdvanceGlobalDay
+            | UiEvent::RewindGlobalDay
+            | UiEvent::None
+            | UiEvent::ExitRequested => {}
         };
 
         render::draw(&mut buffer, &view);

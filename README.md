@@ -7,8 +7,8 @@ Um relógio digital retro em Rust: fundo escuro, temas de cores, hora local em f
 - A hora é atualizada usando o horário local do sistema.
 - Antes das 08:00 e após as 17:00, a contagem mostra `--:--:--` e informa que está aguardando o ciclo.
 - Entre 08:00 e 17:00, a contagem regressiva vai até 17:00.
-- Um contador discreto no topo mostra quanto falta para a próxima sexta-feira às 17:00.
-- Ao chegar à sexta-feira às 17:00, uma contagem regressiva global de 10 segundos prepara uma animação de 20 segundos que cobre a tela; `A` dispara a sequência completa manualmente para testes.
+- Um contador discreto no topo mostra quanto falta para o próximo dia-alvo às 17:00, começando pela sexta-feira.
+- Dez segundos antes do dia-alvo às 17:00, uma contagem regressiva global prepara uma animação de 20 segundos que cobre a tela; `A` dispara a sequência completa manualmente para testes.
 - Fora do ciclo, a contagem mostra `--:--:--` com sombras opcionais e uma frase aleatória de descanso.
 - Durante o ciclo, o rodapé mostra `PARA AS 17:00`.
 - Ao finalizar um ciclo, a animação exibe quatro passagens de `ACABOU` e duas de `ACABOOUUUUUUUUUUU`, durante 30 segundos no total.
@@ -16,7 +16,7 @@ Um relógio digital retro em Rust: fundo escuro, temas de cores, hora local em f
 - A janela usa as decorações nativas do Ubuntu/Ubuntu WSL, com bordas e controles de minimizar, maximizar e fechar.
 - A janela é redimensionável e o conteúdo é esticado para preencher a área disponível.
 - `F` alterna tela inteira; nesse modo as decorações desaparecem e a janela ocupa a tela. A opção `Tela inteira` do menu também alterna entre os dois estados.
-- O menu de contexto oferece `Tela inteira`, `Ajustar sombra`, `TEMAS` (`VERDE`, `ÂMBAR`, `AZUL`, `VERMELHO`, `ROXO`, `CIANO` e `BRANCO`) e `FECHAR`. `Ajustar sombra` percorre sombra completa, meia sombra e sem sombra, mantendo o menu aberto.
+- O menu de contexto oferece `Tela inteira`, `Ajustar sombra`, `TEMAS` (`VERDE`, `ÂMBAR`, `AZUL`, `VERMELHO`, `ROXO`, `CIANO` e `BRANCO`), `AVANÇAR`, `VOLTAR` e `FECHAR`. `Ajustar sombra`, `TEMAS`, `AVANÇAR` e `VOLTAR` mantêm o menu aberto; os dois últimos alternam o dia-alvo entre sexta, sábado, domingo e os demais dias.
 - `J` alterna entre os temas, `K` percorre os três níveis de sombra e `A` dispara a celebração global e uma sequência de oito bipes nativos, espaçados por 280 ms. Para abrir o menu, clique com o botão direito dentro da janela.
 
 ## Ubuntu

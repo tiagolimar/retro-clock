@@ -8,7 +8,7 @@ mod frame;
 mod segment;
 
 use crate::app::AppView;
-use crate::model::{ClockSnapshot, CountdownStatus};
+use crate::model::{ClockSnapshot, CountdownStatus, GlobalCountdown};
 
 const OFF_CYCLE_PHRASES: [&str; 20] = [
     "Acabou, acabou, acabouuuuu...",
@@ -47,9 +47,9 @@ pub fn draw(buffer: &mut [u32], view: &AppView) {
 
     font::draw_text_centered(
         buffer,
-        &friday_countdown_label(view.clock.friday_countdown.remaining_seconds),
+        &global_countdown_label(view.clock.global_countdown),
         46,
-        1,
+        2,
         palette.muted,
     );
     font::draw_text_centered(buffer, "HORÁRIO LOCAL", 84, 2, palette.muted);
@@ -105,16 +105,33 @@ fn status_label(status: CountdownStatus) -> &'static str {
     }
 }
 
-fn friday_countdown_label(total_seconds: u32) -> String {
+fn global_countdown_label(countdown: GlobalCountdown) -> String {
+    let total_seconds = countdown.remaining_seconds;
     let days = total_seconds / (24 * 3600);
     let hours = (total_seconds % (24 * 3600)) / 3600;
     let minutes = (total_seconds % 3600) / 60;
     let seconds = total_seconds % 60;
 
     format!(
-        "PROXIMA SEXTA 17:00  {:02}D {:02}:{:02}:{:02}",
-        days, hours, minutes, seconds
+        "PROXIMA {} 17:00  {:02}D {:02}:{:02}:{:02}",
+        weekday_label(countdown.target_weekday),
+        days,
+        hours,
+        minutes,
+        seconds,
     )
+}
+
+fn weekday_label(weekday: chrono::Weekday) -> &'static str {
+    match weekday {
+        chrono::Weekday::Mon => "SEGUNDA",
+        chrono::Weekday::Tue => "TERCA",
+        chrono::Weekday::Wed => "QUARTA",
+        chrono::Weekday::Thu => "QUINTA",
+        chrono::Weekday::Fri => "SEXTA",
+        chrono::Weekday::Sat => "SABADO",
+        chrono::Weekday::Sun => "DOMINGO",
+    }
 }
 
 fn footer_label(clock: ClockSnapshot) -> &'static str {

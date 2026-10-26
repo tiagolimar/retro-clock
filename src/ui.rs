@@ -4,7 +4,9 @@ use crate::input::{KeyboardInput, MouseInput};
 pub const MENU_WIDTH: i32 = 210;
 pub const MENU_OPTION_HEIGHT: i32 = 28;
 pub const MENU_OPTION_GAP: i32 = 4;
-pub const MENU_HEIGHT: i32 = 2 * 10 + 4 * MENU_OPTION_HEIGHT + 3 * MENU_OPTION_GAP;
+pub const MENU_OPTION_COUNT: i32 = 6;
+pub const MENU_HEIGHT: i32 =
+    2 * 10 + MENU_OPTION_COUNT * MENU_OPTION_HEIGHT + (MENU_OPTION_COUNT - 1) * MENU_OPTION_GAP;
 pub const THEME_MENU_WIDTH: i32 = 150;
 pub const THEME_OPTION_COUNT: i32 = 7;
 pub const THEME_MENU_HEIGHT: i32 =
@@ -15,6 +17,8 @@ pub enum MenuOption {
     Fullscreen,
     Shadows,
     Themes,
+    AdvanceGlobalDay,
+    RewindGlobalDay,
     Close,
 }
 
@@ -92,6 +96,8 @@ pub struct UiView {
     pub fullscreen_hover: bool,
     pub shadows_hover: bool,
     pub themes_hover: bool,
+    pub advance_global_day_hover: bool,
+    pub rewind_global_day_hover: bool,
     pub close_hover: bool,
     pub theme_hovers: [bool; THEME_OPTION_COUNT as usize],
     pub shadow_level: ShadowLevel,
@@ -102,6 +108,8 @@ pub enum UiEvent {
     None,
     ExitRequested,
     ToggleFullscreen,
+    AdvanceGlobalDay,
+    RewindGlobalDay,
 }
 
 pub struct UiController {
@@ -163,6 +171,18 @@ impl UiController {
                 input.y,
                 menu_option_rect(self.menu, MenuOption::Themes),
             );
+        let advance_global_day_hover = self.menu.visible
+            && point_in_rect(
+                input.x,
+                input.y,
+                menu_option_rect(self.menu, MenuOption::AdvanceGlobalDay),
+            );
+        let rewind_global_day_hover = self.menu.visible
+            && point_in_rect(
+                input.x,
+                input.y,
+                menu_option_rect(self.menu, MenuOption::RewindGlobalDay),
+            );
         let close_hover = self.menu.visible
             && point_in_rect(
                 input.x,
@@ -188,6 +208,10 @@ impl UiController {
                 self.shadow_level = self.shadow_level.next();
             } else if themes_hover {
                 self.menu.themes_visible = true;
+            } else if advance_global_day_hover {
+                event = UiEvent::AdvanceGlobalDay;
+            } else if rewind_global_day_hover {
+                event = UiEvent::RewindGlobalDay;
             } else if close_hover {
                 event = UiEvent::ExitRequested;
             } else if !point_in_rect(
@@ -210,6 +234,8 @@ impl UiController {
                 fullscreen_hover: self.menu.visible && fullscreen_hover,
                 shadows_hover: self.menu.visible && shadows_hover,
                 themes_hover: self.menu.visible && themes_hover,
+                advance_global_day_hover: self.menu.visible && advance_global_day_hover,
+                rewind_global_day_hover: self.menu.visible && rewind_global_day_hover,
                 close_hover: self.menu.visible && close_hover,
                 theme_hovers,
                 shadow_level: self.shadow_level,
@@ -223,7 +249,9 @@ pub fn menu_option_rect(menu: MenuView, option: MenuOption) -> (i32, i32, i32, i
         MenuOption::Fullscreen => 0,
         MenuOption::Shadows => 1,
         MenuOption::Themes => 2,
-        MenuOption::Close => 3,
+        MenuOption::AdvanceGlobalDay => 3,
+        MenuOption::RewindGlobalDay => 4,
+        MenuOption::Close => 5,
     };
     let y = menu.y + 10 + row * (MENU_OPTION_HEIGHT + MENU_OPTION_GAP);
 
@@ -301,7 +329,16 @@ mod tests {
             },
             KeyboardInput::default(),
         );
-        assert!(!view.menu.visible || matches!(option, MenuOption::Shadows | MenuOption::Themes));
+        assert!(
+            !view.menu.visible
+                || matches!(
+                    option,
+                    MenuOption::Shadows
+                        | MenuOption::Themes
+                        | MenuOption::AdvanceGlobalDay
+                        | MenuOption::RewindGlobalDay
+                )
+        );
         event
     }
 
@@ -386,5 +423,20 @@ mod tests {
         assert_eq!(event, UiEvent::ToggleFullscreen);
         assert_eq!(view.theme, Theme::Amber);
         assert_eq!(view.shadow_level, ShadowLevel::Half);
+    }
+
+    #[test]
+    fn global_day_options_emit_navigation_events_and_keep_menu_open() {
+        let mut controller = UiController::new();
+        let menu = open_menu(&mut controller);
+
+        assert_eq!(
+            click_option(&mut controller, menu, MenuOption::AdvanceGlobalDay),
+            UiEvent::AdvanceGlobalDay
+        );
+        assert_eq!(
+            click_option(&mut controller, menu, MenuOption::RewindGlobalDay),
+            UiEvent::RewindGlobalDay
+        );
     }
 }
