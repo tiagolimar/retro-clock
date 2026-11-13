@@ -24,6 +24,7 @@ pub fn draw(buffer: &mut [u32], view: UiView, palette: Palette) {
             view.fullscreen_hover,
         ),
         (MenuOption::Shadows, "Ajustar sombra", view.shadows_hover),
+        (MenuOption::Snow, view.snow_level.label(), view.snow_hover),
         (MenuOption::Themes, "TEMAS", view.themes_hover),
         (
             MenuOption::AdvanceGlobalDay,

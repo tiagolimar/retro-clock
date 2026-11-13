@@ -1,10 +1,10 @@
-use crate::config::{ShadowLevel, Theme, CANVAS_HEIGHT, CANVAS_WIDTH};
+use crate::config::{ShadowLevel, SnowLevel, Theme, CANVAS_HEIGHT, CANVAS_WIDTH};
 use crate::input::{KeyboardInput, MouseInput};
 
 pub const MENU_WIDTH: i32 = 210;
 pub const MENU_OPTION_HEIGHT: i32 = 28;
 pub const MENU_OPTION_GAP: i32 = 4;
-pub const MENU_OPTION_COUNT: i32 = 6;
+pub const MENU_OPTION_COUNT: i32 = 7;
 pub const MENU_HEIGHT: i32 =
     2 * 10 + MENU_OPTION_COUNT * MENU_OPTION_HEIGHT + (MENU_OPTION_COUNT - 1) * MENU_OPTION_GAP;
 pub const THEME_MENU_WIDTH: i32 = 150;
@@ -16,6 +16,7 @@ pub const THEME_MENU_HEIGHT: i32 =
 pub enum MenuOption {
     Fullscreen,
     Shadows,
+    Snow,
     Themes,
     AdvanceGlobalDay,
     RewindGlobalDay,
@@ -95,12 +96,14 @@ pub struct UiView {
     pub theme: Theme,
     pub fullscreen_hover: bool,
     pub shadows_hover: bool,
+    pub snow_hover: bool,
     pub themes_hover: bool,
     pub advance_global_day_hover: bool,
     pub rewind_global_day_hover: bool,
     pub close_hover: bool,
     pub theme_hovers: [bool; THEME_OPTION_COUNT as usize],
     pub shadow_level: ShadowLevel,
+    pub snow_level: SnowLevel,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -116,6 +119,7 @@ pub struct UiController {
     menu: MenuView,
     theme: Theme,
     shadow_level: ShadowLevel,
+    snow_level: SnowLevel,
 }
 
 impl UiController {
@@ -124,6 +128,7 @@ impl UiController {
             menu: MenuView::default(),
             theme: Theme::default(),
             shadow_level: ShadowLevel::default(),
+            snow_level: SnowLevel::default(),
         }
     }
 
@@ -164,6 +169,12 @@ impl UiController {
                 input.x,
                 input.y,
                 menu_option_rect(self.menu, MenuOption::Shadows),
+            );
+        let snow_hover = self.menu.visible
+            && point_in_rect(
+                input.x,
+                input.y,
+                menu_option_rect(self.menu, MenuOption::Snow),
             );
         let themes_hover = self.menu.visible
             && point_in_rect(
@@ -206,6 +217,8 @@ impl UiController {
                 event = UiEvent::ToggleFullscreen;
             } else if shadows_hover {
                 self.shadow_level = self.shadow_level.next();
+            } else if snow_hover {
+                self.snow_level = self.snow_level.next();
             } else if themes_hover {
                 self.menu.themes_visible = true;
             } else if advance_global_day_hover {
@@ -233,12 +246,14 @@ impl UiController {
                 theme: self.theme,
                 fullscreen_hover: self.menu.visible && fullscreen_hover,
                 shadows_hover: self.menu.visible && shadows_hover,
+                snow_hover: self.menu.visible && snow_hover,
                 themes_hover: self.menu.visible && themes_hover,
                 advance_global_day_hover: self.menu.visible && advance_global_day_hover,
                 rewind_global_day_hover: self.menu.visible && rewind_global_day_hover,
                 close_hover: self.menu.visible && close_hover,
                 theme_hovers,
                 shadow_level: self.shadow_level,
+                snow_level: self.snow_level,
             },
         )
     }
@@ -248,10 +263,11 @@ pub fn menu_option_rect(menu: MenuView, option: MenuOption) -> (i32, i32, i32, i
     let row = match option {
         MenuOption::Fullscreen => 0,
         MenuOption::Shadows => 1,
-        MenuOption::Themes => 2,
-        MenuOption::AdvanceGlobalDay => 3,
-        MenuOption::RewindGlobalDay => 4,
-        MenuOption::Close => 5,
+        MenuOption::Snow => 2,
+        MenuOption::Themes => 3,
+        MenuOption::AdvanceGlobalDay => 4,
+        MenuOption::RewindGlobalDay => 5,
+        MenuOption::Close => 6,
     };
     let y = menu.y + 10 + row * (MENU_OPTION_HEIGHT + MENU_OPTION_GAP);
 
@@ -266,8 +282,8 @@ pub fn theme_menu_rect(menu: MenuView) -> (i32, i32, i32, i32) {
     } else {
         left_x.max(12)
     };
-    let y = (menu.y + 2 * (MENU_OPTION_HEIGHT + MENU_OPTION_GAP))
-        .clamp(12, CANVAS_HEIGHT as i32 - THEME_MENU_HEIGHT - 12);
+    let (_, theme_y, _, _) = menu_option_rect(menu, MenuOption::Themes);
+    let y = theme_y.clamp(12, CANVAS_HEIGHT as i32 - THEME_MENU_HEIGHT - 12);
 
     (x, y, THEME_MENU_WIDTH, THEME_MENU_HEIGHT)
 }
@@ -334,6 +350,7 @@ mod tests {
                 || matches!(
                     option,
                     MenuOption::Shadows
+                        | MenuOption::Snow
                         | MenuOption::Themes
                         | MenuOption::AdvanceGlobalDay
                         | MenuOption::RewindGlobalDay

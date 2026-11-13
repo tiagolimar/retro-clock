@@ -6,6 +6,7 @@ mod context_menu;
 mod font;
 mod frame;
 mod segment;
+mod snow;
 
 use crate::app::AppView;
 use crate::model::{ClockSnapshot, CountdownStatus, GlobalCountdown};
@@ -38,6 +39,7 @@ pub fn draw(buffer: &mut [u32], view: &AppView) {
 
     if let Some(celebration) = view.celebration {
         celebration::draw(buffer, celebration.progress, palette);
+        snow::draw(buffer, view.ui.snow_level, view.snow_elapsed_seconds);
         return;
     }
 
@@ -91,6 +93,8 @@ pub fn draw(buffer: &mut [u32], view: &AppView) {
         );
     }
     font::draw_text_centered(buffer, footer_label(view.clock), 514, 2, palette.muted);
+
+    snow::draw(buffer, view.ui.snow_level, view.snow_elapsed_seconds);
 
     if view.ui.menu.visible {
         context_menu::draw(buffer, view.ui, palette);

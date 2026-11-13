@@ -23,6 +23,7 @@ pub struct App<T: TimeProvider> {
     celebration_started_at: Option<Instant>,
     previous_countdown_status: Option<CountdownStatus>,
     end_of_cycle_animation_started_at: Option<Instant>,
+    snow_started_at: Instant,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -31,6 +32,7 @@ pub struct AppView {
     pub ui: UiView,
     pub celebration: Option<CelebrationView>,
     pub end_of_cycle_animation: Option<EndOfCycleAnimation>,
+    pub snow_elapsed_seconds: f64,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -55,6 +57,7 @@ impl App<LocalTimeProvider> {
             celebration_started_at: None,
             previous_countdown_status: None,
             end_of_cycle_animation_started_at: None,
+            snow_started_at: Instant::now(),
         }
     }
 }
@@ -92,6 +95,7 @@ impl<T: TimeProvider> App<T> {
                 ui,
                 celebration: self.celebration_view(),
                 end_of_cycle_animation,
+                snow_elapsed_seconds: self.snow_started_at.elapsed().as_secs_f64(),
             },
             event,
         )
